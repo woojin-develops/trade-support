@@ -5,15 +5,16 @@ import time
 from bs4 import BeautifulSoup
 from colorama import Fore
 from requests import Session
-
+from itertools import cycle
+import nltk
 
 colorama.init(autoreset=True)
 with open('proxies.txt', 'r+', encoding='utf-8') as f:
-    proxies = f.read().splitlines() #useless atm
+    ProxyPool = cycle(f.read().splitlines()) #useless atm
 
 def getNetwork(URL):
     time.sleep(1)
-    res = requests.get(URL).text
+    res = requests.get(URL,).text
     soup = BeautifulSoup(res, 'lxml')
     price = soup.find('div', {'class':'YMlKec fxKbKc'}).text
     return soup, price
@@ -28,9 +29,9 @@ class Polling:
             soup, price = getNetwork(URL)
             ticker = URL.split('/')[5].split(':')[0]
             if (previousPrice:=soup.find('div', {'class':'P6K39c'}).text) > price:
-                print(f'{datetime.datetime.now()}{Fore.RED}{ticker} {Fore.GREEN}{previousPrice} -----> {Fore.RED}{price}')
+                print(f'{Fore.BLUE}{datetime.datetime.now()} {Fore.RED}{ticker} {Fore.GREEN}{previousPrice} -----> {Fore.RED}{price}')
             else:
-                print(f'{datetime.datetime.now()}{Fore.GREEN}{ticker} {Fore.RED}{previousPrice} -----> {Fore.GREEN}{price}')
+                print(f'{Fore.BLUE}{datetime.datetime.now()} {Fore.GREEN}{ticker} {Fore.RED}{previousPrice} -----> {Fore.GREEN}{price}')
             stockQuotes = soup.find_all('div', {'class':'yY3Lee'})
             for quote in stockQuotes:
                 try:
@@ -42,3 +43,5 @@ class Polling:
                     print('AttributeError: NoneType object has no attribute text')
                 else:
                     print(f'{caption}:{source}:{relevancy}\n{sourceLink}')
+BEST = Polling('aapl, msft, tlry, tsla')
+BEST.poll()
