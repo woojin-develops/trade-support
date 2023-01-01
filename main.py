@@ -5,9 +5,13 @@ import time
 import nltk
 from bs4 import BeautifulSoup
 from itertools import cycle
-from collections import defaultdict
+from collections import defaultdict, Counter
 from colorama import Fore
-
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from sklearn.feature_extraction.text import TfidfVectorizer
+nltk.download('punkt')
+nltk.download('stopwords')
 colorama.init(autoreset=True)
 with open('proxies.txt', 'r+', encoding='utf-8') as f:
     proxypool = cycle(f.read().splitlines()) #useless atm
@@ -51,7 +55,15 @@ class Polling:
         soup, _ = getNetwork(self.sources['tlry'][0])
         main_text = soup.find('body').text
         tokens = nltk.word_tokenize(main_text)
-        print(tokens)
+        stop_words = set(stopwords.words('english'))
+        filtered_tokens = [token for token in tokens if token not in stop_words]
+        stemmer = PorterStemmer()
+        stemmed_tokens = [stemmer.stem(token) for token in filtered_tokens]
+        tfidf = TfidfVectorizer()
+        tfidf_matrix = tfidf.fit_transform(stemmed_tokens)
+        relevant_words = list(tfidf.vocabulary_.keys())
+        word_counts = Counter(relevant_words)
+        
 test = Polling('tlry, aapl, msft')
 test.poll()
 test.analyze()
