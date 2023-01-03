@@ -10,6 +10,7 @@ from colorama import Fore
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
+
 nltk.download('punkt')
 nltk.download('stopwords')
 colorama.init(autoreset=True)
@@ -27,6 +28,7 @@ def getNetwork(URL):
     return soup, price
 
 class Polling:
+    
     def __init__(self, symbols, exchange = 'nasdaq'):
         self.symbols = [symbol.strip(' ') for symbol in symbols.split(',')]
         self.tickers = [f'https://www.google.com/finance/quote/{symbol}:{exchange}?hl=en' for symbol in self.symbols] 
@@ -59,11 +61,17 @@ class Polling:
         filtered_tokens = [token for token in tokens if token not in stop_words]
         stemmer = PorterStemmer()
         stemmed_tokens = [stemmer.stem(token) for token in filtered_tokens]
+
+    def extract_important_sentences(self, n=5):
+        sentences = nltk.sent_tokenize(self.sources['tlry'][0])
         tfidf = TfidfVectorizer()
-        tfidf_matrix = tfidf.fit_transform(stemmed_tokens)
-        relevant_words = list(tfidf.vocabulary_.keys())
-        word_counts = Counter(relevant_words)
-        
+        tfidf_matrix = tfidf.fit_transform(sentences)
+        if len(sentences) >= n:
+            top_sentence_indices = (-tfidf_matrix.toarray()).argsort()[:, :n][0]
+        else:
+            top_sentence_indices = (-tfidf_matrix.toarray()).argsort()[:, :][0]
+        top_sentences = [sentences[i] for i in top_sentence_indices]
+        return top_sentences
 test = Polling('tlry, aapl, msft')
 test.poll()
-test.analyze()
+print(test.extract_important_sentences())
