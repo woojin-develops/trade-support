@@ -3,6 +3,7 @@ import colorama
 import datetime
 import time
 import nltk
+import numpy as np
 from bs4 import BeautifulSoup
 from itertools import cycle
 from collections import defaultdict, Counter
@@ -54,24 +55,38 @@ class Polling:
                     self.sources[f'{ticker}'].append(source_link)
                     print(f'{caption}:{source}:{relevancy}\n{source_link}')
     def analyze(self):
-        soup, _ = getNetwork(self.sources['tlry'][0])
+        soup, _ = getNetwork('https://seekingalpha.com/news/3924446-hexo-stock-extends-gains-rising-volumes')
         main_text = soup.find('body').text
         tokens = nltk.word_tokenize(main_text)
         stop_words = set(stopwords.words('english'))
         filtered_tokens = [token for token in tokens if token not in stop_words]
         stemmer = PorterStemmer()
         stemmed_tokens = [stemmer.stem(token) for token in filtered_tokens]
+        tfidf = TfidfVectorizer()
+        tfidf_matrix = tfidf.fit_transform([" ".join(stemmed_tokens)])
+        feature_names = tfidf.get_feature_names_out()
+        tfidf_scores = zip(feature_names, np.asarray(tfidf_matrix.sum(axis=0)).ravel())
+        sorted_scores = sorted(tfidf_scores, key=lambda x: x[1], reverse=True)
+        important_keywords = [s[0] for s in sorted_scores[:10]]
+        return important_keywords
 
     def extract_important_sentences(self, n=5):
-        sentences = nltk.sent_tokenize(self.sources['tlry'][0])
+        soup, _ = getNetwork('https://seekingalpha.com/news/3924446-hexo-stock-extends-gains-rising-volumes')
+        main_text = soup.find('body').text
+        sentences = nltk.sent_tokenize(main_text)
+        #stop_words = set(stopwords.words('english'))
+        #filtered_sentences = []
+        #for sentence in sentences:
+            #filtered_tokens = [token for token in nltk.word_tokenize(sentence) if token not in stop_words]
+            #filtered_sentences.append(" ".join(filtered_tokens))
         tfidf = TfidfVectorizer()
         tfidf_matrix = tfidf.fit_transform(sentences)
-        if len(sentences) >= n:
-            top_sentence_indices = (-tfidf_matrix.toarray()).argsort()[:, :n][0]
-        else:
-            top_sentence_indices = (-tfidf_matrix.toarray()).argsort()[:, :][0]
-        top_sentences = [sentences[i] for i in top_sentence_indices]
-        return top_sentences
+        feature_names = tfidf.get_feature_names_out()
+        tfidf_scores = zip(feature_names, np.asarray(tfidf_matrix.sum(axis=0)).ravel())
+        sorted_scores = sorted(tfidf_scores, key=lambda x: x[1], reverse=True)
+        sorted_index = (-tfidf_matrix.sum(axis=1)).argsort().tolist()[0][:n]
+        important_sentences = [sentences[i] for i in sorted_index]
+        return important_sentences
 test = Polling('tlry, aapl, msft')
 test.poll()
 print(test.extract_important_sentences())
