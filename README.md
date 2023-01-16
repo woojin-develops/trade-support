@@ -2,4 +2,4 @@
 
 Created by Alcoss
 
-TradeSupport utilizes modules such as sklearn and nltk to extract important keywords and sentences from google finance articles on the respective stock to predict the direction of a stock. 
+TradeSupport utilizes modules such as sklearn and nltk to extract important keywords and sentences from a collection of google finance articles to provide investors on real time current events that may have an impact on the price of a stock
