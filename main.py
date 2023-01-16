@@ -3,6 +3,7 @@ import colorama
 import datetime
 import time
 import nltk
+import itertools
 import numpy as np
 from bs4 import BeautifulSoup
 from itertools import cycle
@@ -16,7 +17,7 @@ nltk.download('punkt')
 nltk.download('stopwords')
 colorama.init(autoreset=True)
 with open('proxies.txt', 'r+', encoding='utf-8') as f:
-    proxypool = cycle(f.read().splitlines()) #useless atm
+    proxypool = cycle(f.read().splitlines()) #prevents ratelimits
 
 def getNetwork(URL):
     time.sleep(1)
@@ -54,7 +55,8 @@ class Polling:
                 else:
                     self.sources[f'{ticker}'].append(source_link)
                     print(f'{caption}:{source}:{relevancy}\n{source_link}')
-    def analyze(self):
+    def analyze(self): #bad results
+    
         soup, _ = getNetwork('https://seekingalpha.com/news/3924446-hexo-stock-extends-gains-rising-volumes')
         main_text = soup.find('body').text
         tokens = nltk.word_tokenize(main_text)
@@ -68,9 +70,8 @@ class Polling:
         tfidf_scores = zip(feature_names, np.asarray(tfidf_matrix.sum(axis=0)).ravel())
         sorted_scores = sorted(tfidf_scores, key=lambda x: x[1], reverse=True)
         important_keywords = [s[0] for s in sorted_scores[:10]]
-        return important_keywords
-
-    def extract_important_sentences(self, n=5):
+        print(important_keywords)
+    def extract_important_sentences(text, n=7):
         soup, _ = getNetwork('https://seekingalpha.com/news/3924446-hexo-stock-extends-gains-rising-volumes')
         main_text = soup.find('body').text
         sentences = nltk.sent_tokenize(main_text)
@@ -86,7 +87,33 @@ class Polling:
         sorted_scores = sorted(tfidf_scores, key=lambda x: x[1], reverse=True)
         sorted_index = (-tfidf_matrix.sum(axis=1)).argsort().tolist()[0][:n]
         important_sentences = [sentences[i] for i in sorted_index]
-        return important_sentences
-test = Polling('tlry, aapl, msft')
-test.poll()
-print(test.extract_important_sentences())
+        print(important_sentences)
+def run():
+    while True:
+        tickers = input('enter stock tickers like tlry, aapl, msft \n')
+        if len(tickers) == 0:
+            break
+        user = Polling(tickers)
+        try:
+            user.poll()
+        except Exception:
+            print('ticker(s) could not be found')
+        try:
+            user.analyze()
+        except Exception:
+            print('Important keywords could not be found')
+        try: 
+            user.extract_important_sentences()
+        except Exception:
+            print('Important sentences could not be found')
+        continue
+        
+
+        
+
+
+#test = Polling('tlry, aapl, msft')
+#test.poll()
+#print(test.analyze())
+#print(test.extract_important_sentences(n=7)) 
+run()
