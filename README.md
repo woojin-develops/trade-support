@@ -1,5 +1,4 @@
 # TradeSupport
 
-Created by Alcoss 
-TradeSupport is a tool informs investors on the latest market updates
-TradeSupport utilizes modules such as sklearn and nltk to extract important keywords and sentences from a corpus of google finance articles
+Created by Alcoss\n
+TradeSupport utilizes modules such as sklearn and nltk to extract important keywords and sentences from google finance articles on the respective stock to predict the direction of a stock. 
