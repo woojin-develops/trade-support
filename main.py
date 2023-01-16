@@ -35,6 +35,7 @@ class Polling:
         self.symbols = [symbol.strip(' ') for symbol in symbols.split(',')]
         self.tickers = [f'https://www.google.com/finance/quote/{symbol}:{exchange}?hl=en' for symbol in self.symbols] 
         self.sources = defaultdict(list)
+    
     def poll(self):
         for URL in self.tickers:
             soup, price = getNetwork(URL)
@@ -55,22 +56,26 @@ class Polling:
                 else:
                     self.sources[f'{ticker}'].append(source_link)
                     print(f'{caption}:{source}:{relevancy}\n{source_link}')
-    def analyze(self): #bad results
-    
-        soup, _ = getNetwork('https://seekingalpha.com/news/3924446-hexo-stock-extends-gains-rising-volumes')
-        main_text = soup.find('body').text
-        tokens = nltk.word_tokenize(main_text)
+    def analyze(self): 
         stop_words = set(stopwords.words('english'))
-        filtered_tokens = [token for token in tokens if token not in stop_words]
-        stemmer = PorterStemmer()
-        stemmed_tokens = [stemmer.stem(token) for token in filtered_tokens]
-        tfidf = TfidfVectorizer()
-        tfidf_matrix = tfidf.fit_transform([" ".join(stemmed_tokens)])
-        feature_names = tfidf.get_feature_names_out()
-        tfidf_scores = zip(feature_names, np.asarray(tfidf_matrix.sum(axis=0)).ravel())
-        sorted_scores = sorted(tfidf_scores, key=lambda x: x[1], reverse=True)
-        important_keywords = [s[0] for s in sorted_scores[:10]]
-        print(important_keywords)
+        tfidf = TfidfVectorizer(stop_words=['the', 'how', 'us', 'may', 'about', 'my', 'also', 'our', 'get', 'by', 'all', 'motley', 'fool', 'really', '2023', '2022', 'said', 'still', 'could'])
+        #stemmer = PorterStemmer()
+        for symbol in self.symbols:
+            for source in self.sources[symbol]:
+                corpus = ''
+                soup, _ = getNetwork(source)
+                main_text = soup.find('body').text
+                corpus += main_text
+            tokens = nltk.word_tokenize(corpus)
+            filtered_tokens = [token for token in tokens if token not in stop_words]
+            #stemmed_tokens = [stemmer.stem(token) for token in filtered_tokens]
+            tfidf_matrix = tfidf.fit_transform(filtered_tokens)
+            feature_names = tfidf.get_feature_names_out()
+            tfidf_scores = zip(feature_names, np.asarray(tfidf_matrix.sum(axis=0)).ravel())
+            sorted_scores = sorted(tfidf_scores, key=lambda x: x[1], reverse=True)
+            important_keywords = [s[0] for s in sorted_scores[:20]]
+            print(important_keywords)
+    
     def extract_important_sentences(text, n=7):
         soup, _ = getNetwork('https://seekingalpha.com/news/3924446-hexo-stock-extends-gains-rising-volumes')
         main_text = soup.find('body').text
@@ -112,8 +117,8 @@ def run():
         
 
 
-#test = Polling('tlry, aapl, msft')
-#test.poll()
-#print(test.analyze())
-#print(test.extract_important_sentences(n=7)) 
-run()
+test = Polling('tlry, msft')
+test.poll()
+test.analyze()
+test.extract_important_sentences
+#run()
