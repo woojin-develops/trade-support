@@ -16,8 +16,7 @@ Stock Scope is a tool that utilizes modules such as sklearn and nltk to extract 
 3. Input the desired parameters or configurations as prompted.
 4. Receive insights and analysis results based on the latest Google Finance articles.
 
-## Contributing
-
-Contributions are welcome! If you have suggestions for improvements, bug reports, or would like to contribute code, please feel free to submit a pull request.
-
 ## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
