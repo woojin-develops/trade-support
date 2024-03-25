@@ -1,6 +1,6 @@
 # Stock Scope
 
-Stock Scope is a tool that utilizes modules such as sklearn and nltk to extract important keywords and sentences from a corpus of Google Finance articles. Its primary purpose is to provide investors with real-time insights into current events that may have an impact on stock prices.
+Stock Scope is a tool that utilizes modules such as sklearn and nltk to extract important keywords and sentences from a variety of Google Finance articles, with the purpose of providing investors with real-time insights into current events that may have an impact on stock prices.
 
 ## Features
 
